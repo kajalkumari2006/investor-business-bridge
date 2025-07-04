@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <h1>Dashboard</h1>
+  <p id="welcomeMsg">Loading user info...</p>
+  <button id="logoutBtn">Logout</button>
+
+  <!-- Firebase libraries -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+
+  <!-- Your Firebase config -->
+  <script src="js/database.js"></script>
+
+  <!-- Dashboard logic -->
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        // ✅ User is logged in, get Firestore data
+        db.collection('users').doc(user.uid).get()
+          .then((doc) => {
+            if (doc.exists) {
+              const userData = doc.data();
+              document.getElementById('welcomeMsg').innerText =
+                `Welcome, ${userData.name}! Your role is: ${userData.role}`;
+            } else {
+              document.getElementById('welcomeMsg').innerText = 'No user data found.';
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            document.getElementById('welcomeMsg').innerText = 'Error fetching user data.';
+          });
+      } else {
+        // ✅ Not logged in → redirect to login page
+        window.location.href = 'login.html';
+      }
+    });
+
+    // ✅ Logout button
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        alert('Logged out!');
+        window.location.href = 'login.html';
+      });
+    });
+  </script>
+</body>
+</html>
